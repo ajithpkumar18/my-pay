@@ -11,6 +11,7 @@ router.post("/signup", async (req, res) => {
 	console.log("request came");
 
 	const data = req.body;
+	console.log(data);
 	const creds = signinData.safeParse({
 		username: data.username,
 		password: data.password,
@@ -55,20 +56,23 @@ router.post("/signup", async (req, res) => {
 
 router.post("/signin", async (req, res) => {
 	const data = req.body;
-	const creds = signinData.safeParse({
+	const { success } = signinData.safeParse({
 		username: data.username,
 		password: data.password,
 	});
 
-	if (creds.success) {
-		const user = await User.findOne({ username: creds.data.username });
+	if (success) {
+		const user = await User.findOne({ username: data.username });
 		if (!user) {
 			return;
 		}
+		console.log(user.password, data.password);
+
 		const isUser = bcrypt.compareSync(
-			creds.data.password as string,
+			data.password as string,
 			user.password as string
 		);
+		console.log(isUser);
 		if (isUser) {
 			const token = await jwt.sign(
 				{ id: user._id, username: user.username },

@@ -17,6 +17,7 @@ export const authMiddleware = (
 			const valid = jwt.verify(token as string, "qwertyy122");
 			console.log("valid", valid);
 			req.headers["username"] = (valid as any).username as string;
+			req.headers["id"] = (valid as any).id;
 			next();
 			return;
 		}

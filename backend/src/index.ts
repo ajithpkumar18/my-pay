@@ -2,6 +2,9 @@ import express from "express";
 import cors from "cors";
 import { router } from "./routes/index.js";
 import mongoose from "mongoose";
+import accRouter from "./routes/accounts.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 const app = express();
 app.use(express.json());
@@ -13,10 +16,10 @@ app.post("/", (req, res) => {
 });
 
 app.use("/api/auth", router);
-
+app.use("/api/accounts", accRouter);
 app.listen(3000, async () => {
 	try {
-		await mongoose.connect("mongodb://localhost:27017/");
+		await mongoose.connect(process.env.URI as string);
 	} catch (err) {
 		console.log(err);
 	}
