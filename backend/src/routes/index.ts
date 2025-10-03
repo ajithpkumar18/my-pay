@@ -1,5 +1,5 @@
 import express from "express";
-import { User } from "../db/userSchema.js";
+import { Accounts, User } from "../db/schema.js";
 import { signinData } from "../zodSchemas/index.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
@@ -14,6 +14,8 @@ router.post("/signup", async (req, res) => {
 	const creds = signinData.safeParse({
 		username: data.username,
 		password: data.password,
+		firstName: data.firstName,
+		lastName: data.lastName,
 	});
 
 	if (creds.success) {
@@ -30,11 +32,19 @@ router.post("/signup", async (req, res) => {
 			return;
 		}
 
-		await User.create({
+		const newuser = await User.create({
 			username: creds.data.username,
 			password: password,
+			firstName: creds.data.firstName,
+			lastName: creds.data.lastName,
 		});
 
+		const userId = newuser._id;
+
+		await Accounts.create({
+			userId,
+			balance: 1 * Math.random() * 1000,
+		});
 		res.status(300).json({ message: "Signup Sucessfull" });
 		return;
 	}
@@ -76,43 +86,31 @@ router.post("/signin", async (req, res) => {
 });
 
 router.patch("/update", authMiddleware, async (req, res) => {
-	const data = req.body;
-	const username = req.headers["username"];
-	const creds = signinData.safeParse({
-		username: data.username,
-		password: data.password,
+	const { username, password, firstName, lastName } = req.body;
+	const name = req.headers["username"];
+	const { success } = signinData.safeParse({
+		username,
+		password,
+		firstName,
+		lastName,
 	});
 
-	if (creds.success) {
+	if (success) {
 		const user = await User.findOne({ username: username });
 		if (!user) {
 			res.status(409).json({ message: "No such user to update" });
 			return;
 		}
-		if (creds.data.password) {
-			const isUser = bcrypt.compareSync(
-				creds.data.password as string,
-				user.password as string
-			);
-			if (isUser) {
-				res.status(200).json({
-					message: "password is same",
-				});
-				return;
-			}
-		}
 
-		if (creds.data.username && username == creds.data.username) {
-			res.status(400).json({
-				message: "Name is same",
-			});
-			return;
-		}
-
-		const pass = bcrypt.hashSync(creds.data.password as string, 3);
+		const pass = bcrypt.hashSync(password as string, 3);
 		await User.updateOne(
 			{ username: username },
-			{ username: creds.data.username, password: pass }
+			{
+				username,
+				password: pass,
+				firstName,
+				lastName,
+			}
 		);
 
 		res.status(200).json({ message: "Updated" });
@@ -123,6 +121,33 @@ router.patch("/update", authMiddleware, async (req, res) => {
 		});
 		return;
 	}
+});
+
+router.get("/bulk", authMiddleware, async (req, res) => {
+	const filter = req.query.filter;
+	try {
+		const users = await User.find({
+			$or: [
+				{
+					username: {
+						$regex: filter,
+					},
+				},
+			],
+		});
+
+		res.json({
+			user: users.map((user: any) => ({
+				username: user.username,
+				_id: user._id,
+			})),
+		});
+	} catch (err) {
+		console.log(err);
+		res.status(400).json({ message: "Encountered error" });
+		return;
+	}
+	res.status(400).json({ message: "No users found" });
 });
 
 export default router;
