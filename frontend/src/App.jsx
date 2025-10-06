@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import About from "./components/About"
-import Contact from "./components/Contact"
-import Home from "./components/Home"
-import Signup from './components/Signup';
+import About from "./pages/About"
+import Contact from "./pages/Dashboard"
+import Signin from "./pages/Signin"
+import Signup from './pages/Signup';
 
 function App() {
 
@@ -10,8 +10,8 @@ function App() {
 
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Signup />} />
-        <Route path="/signin" element={<Home />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/login" element={<Signin />} />
         <Route path="/dashboard" element={<About />} />
         <Route path="/send" element={<Contact />} />
       </Routes>
