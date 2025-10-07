@@ -60,14 +60,14 @@ accRouter.post("/transfer", authMiddleware, async (req, res) => {
 		).session(session);
 
 		await session.commitTransaction();
-		res.json({
+		res.status(200).json({
 			message: "Tranfer Successfull",
 		});
 		return;
 	} catch (err) {
 		await session.abortTransaction();
 		console.log(err);
-		res.json({
+		res.status(400).json({
 			message: "Tranfer Failed",
 		});
 		return;

@@ -1,8 +1,8 @@
 import React from 'react'
 
-const Heading = ({ heading }) => {
+const Heading = ({ heading, size, className }) => {
     return (
-        <p className="bg-white text-black text-4xl font-semibold text-center p-2">{heading}</p>
+        <p className={`${className ? className : "bg-white text-black ${size} font-semibold text-center p-2"}`}>{heading}</p>
     )
 }
 

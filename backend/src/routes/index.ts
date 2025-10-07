@@ -46,7 +46,7 @@ router.post("/signup", async (req, res) => {
 			userId,
 			balance: 1 * Math.random() * 1000,
 		});
-		res.status(300).json({ message: "Signup Sucessfull" });
+		res.status(200).json({ message: "Signup Sucessfull" });
 		return;
 	}
 
@@ -129,12 +129,15 @@ router.patch("/update", authMiddleware, async (req, res) => {
 
 router.get("/bulk", authMiddleware, async (req, res) => {
 	const filter = req.query.filter;
+	const name = req.headers["username"];
 	try {
 		const users = await User.find({
 			$or: [
 				{
 					username: {
-						$regex: filter,
+						$regex: `^${filter}`,
+						$options: "i",
+						$ne: name,
 					},
 				},
 			],
@@ -146,6 +149,7 @@ router.get("/bulk", authMiddleware, async (req, res) => {
 				_id: user._id,
 			})),
 		});
+		return;
 	} catch (err) {
 		console.log(err);
 		res.status(400).json({ message: "Encountered error" });
